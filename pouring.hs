@@ -5,10 +5,11 @@ type Volume = Int
 type State = Map.Map Index Volume
 type Capacities = Map.Map Index Volume
 
-data Move =
-	  Empty { glass :: Index }
+data Move
+	= Empty { glass :: Index }
 	| Fill { glass :: Index }
 	| Pour { from :: Index, to :: Index }
+	deriving (Show)
 
 applyMove :: Move -> Capacities -> State -> State
 applyMove (Empty g) cs s = Map.adjust (\_ -> 0) g s
@@ -37,7 +38,14 @@ main = do
 		newState2 = applyMove move2 capacities newState1
 		newState3 = applyMove move3 capacities newState2
 		newState4 = applyMove move4 capacities newState3
+		glasses = [0..(length glassVolumes - 1)]
+		moves =
+			[Empty g | g <- glasses] ++
+			[Fill g | g <- glasses] ++
+			[Pour from to | from <- glasses, to <- glasses, from /= to]
 
 	putStrLn $ "capacities: " ++ show capacities
 	putStrLn $ "initialState: " ++ show initialState
 	putStrLn $ "newState: " ++ show newState4
+	putStrLn $ "glasses: " ++ show glasses
+	putStrLn $ "moves: " ++ show moves
