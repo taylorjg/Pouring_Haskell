@@ -1,37 +1,42 @@
-type State = [Int]
+import qualified Data.Map as Map
+
+type Index = Int
+type Volume = Int
+type State = Map.Map Index Volume
+type Capacities = Map.Map Index Volume
 
 data Move =
-	Empty { glass :: Int } |
-	Fill { glass :: Int } |
-	Pour { from :: Int, to :: Int }
+	  Empty { glass :: Index }
+	| Fill { glass :: Index }
+	| Pour { from :: Index, to :: Index }
 
--- http://stackoverflow.com/questions/5852722/replace-individual-list-elements-in-haskell
-replaceNth n newVal (x:xs)
-	| n == 0 = newVal:xs
-	| otherwise = x:replaceNth (n-1) newVal xs	
-
-applyMove :: Move -> [Int] -> State -> State
-applyMove m cs s = case m of
-	Empty g ->
-		replaceNth g 0 s
-	Fill g ->
-		replaceNth g (cs !! g) s
-	Pour g1 g2 ->
-		let
-			toCapacity = cs !! g2
-			fromState = s !! g1
-			toState = s !! g2
-			amount = min fromState (toCapacity - toState)
-		in (replaceNth g2 (toState + amount) (replaceNth g1 (fromState - amount) s))
+applyMove :: Move -> Capacities -> State -> State
+applyMove (Empty g) cs s = Map.adjust (\_ -> 0) g s
+applyMove (Fill g) cs s = Map.adjust (\_ -> cs Map.! g) g s
+applyMove (Pour from to) cs s = 
+	let
+		toCapacity = cs Map.! to
+		fromState = s Map.! from
+		toState = s Map.! to
+		amount = min fromState (toCapacity - toState)
+	in
+		Map.adjust (\_ -> toState + amount) to (Map.adjust (\_ -> fromState - amount) from s)
 
 main = do
 
 	let
-		capacities = [4, 9]
-		initialState = map (\_ -> 2) capacities :: State
-		move = Pour 1 0
-		newState = applyMove move capacities initialState
+		glassVolumes = [4, 9]
+		capacities = Map.fromList $ zip [0..] glassVolumes
+		initialState = Map.map (\_ -> 0) capacities
+		move1 = Fill 1
+		move2 = Pour 1 0
+		move3 = Empty 0
+		move4 = Pour 1 0
+		newState1 = applyMove move1 capacities initialState
+		newState2 = applyMove move2 capacities newState1
+		newState3 = applyMove move3 capacities newState2
+		newState4 = applyMove move4 capacities newState3
 
 	putStrLn $ "capacities: " ++ show capacities
 	putStrLn $ "initialState: " ++ show initialState
-	putStrLn $ "newState: " ++ show newState
+	putStrLn $ "newState: " ++ show newState4
