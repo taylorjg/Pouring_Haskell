@@ -20,7 +20,8 @@ applyMove (Pour from to) cs s =
 		toState = s Map.! to
 		amount = min fromState (toCapacity - toState)
 	in
-		Map.adjust (\_ -> toState + amount) to (Map.adjust (\_ -> fromState - amount) from s)
+		Map.adjust (\_ -> fromState - amount) from .
+		Map.adjust (\_ -> toState + amount) to $ s
 
 main = do
 
