@@ -52,6 +52,24 @@ fromPaths paths explored moves capacities =
 	in
 		[paths] ++ fromPaths morePaths moreExplored moves capacities
 
+formatPath :: Path -> Capacities -> State -> [String]
+formatPath path capacities initialState =
+	let
+		steps = Data.List.foldr
+			(\move acc ->
+				let
+					previousState = case acc of
+						[] -> initialState
+						(_, ps):_ -> ps
+					nextState = applyMove move capacities previousState
+					stepDescription = show move ++ " => " ++ show nextState
+				in
+					(stepDescription, nextState) : acc)
+			[]
+			(history path)
+	in
+		reverse $ Data.List.map fst steps
+
 solutions :: [[Path]] -> Volume -> [Path]
 solutions pathSets target =
 	[path |
@@ -70,14 +88,11 @@ main = do
 		capacities = fromList $ zip glasses glassVolumes
 		initialState = fromList $ zip glasses $ repeat 0
 		initialPath = Path initialState []
-		pathSets = fromPaths [initialPath] [initialState] moves capacities
-		solution = head $ solutions pathSets target
 		moves =
 			[Empty g | g <- glasses] ++
 			[Fill g | g <- glasses] ++
 			[Pour from to | from <- glasses, to <- glasses, from /= to]
+		pathSets = fromPaths [initialPath] [initialState] moves capacities
+		solution = head $ solutions pathSets target
 
-	putStrLn $ "capacities: " ++ show capacities
-	putStrLn $ "initialState: " ++ show initialState
-	putStrLn $ "initialPath: " ++ show initialPath
-	putStrLn $ "solution: " ++ show solution
+	mapM_ putStrLn $ formatPath solution capacities initialState
