@@ -58,14 +58,12 @@ formatPath path capacities initialState =
         steps = Data.List.foldr
             (\move acc ->
                 let
-                    previousState = case acc of
-                        [] -> initialState
-                        (_, ps):_ -> ps
+                    previousState = snd $ head acc
                     nextState = applyMove move capacities previousState
                     stepDescription = show move ++ " => " ++ show nextState
                 in
                     (stepDescription, nextState) : acc)
-            []
+            [("initialState = " ++ show initialState, initialState)]
             (history path)
     in
         reverse $ Data.List.map fst steps
