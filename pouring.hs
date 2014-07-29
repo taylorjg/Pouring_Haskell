@@ -29,8 +29,13 @@ data Path = Path {
 	history :: [Move]}
 	deriving (Show)
 
-extendPath :: Path -> Move -> Capacities -> Path
-extendPath p m cs = Path (applyMove m cs (endState p)) (m : (history p))
+extendPath :: Path -> Capacities -> Move -> Path
+extendPath path capacities move =
+	let
+		newPath = applyMove move capacities (endState path)
+		newHistory = move : history path
+	in
+		Path newPath newHistory
 
 fromPaths :: [Path] -> [State] -> [Move] -> Capacities -> [[Path]]
 fromPaths [] _ _ _ = [[]]
@@ -38,9 +43,9 @@ fromPaths paths explored moves capacities =
 	let
 		morePaths = [next |
 			path <- paths,
-			next <- map (\m -> extendPath path m capacities) moves,
+			next <- map (extendPath path capacities) moves,
 			(endState next) `notElem` explored]
-		moreExplored = explored ++ (map (\p -> endState p) morePaths)
+		moreExplored = explored ++ (map endState morePaths)
 	in
 		[paths] ++ fromPaths morePaths moreExplored moves capacities
 
@@ -49,7 +54,7 @@ solutions pathSets target =
 	[path |
 		pathSet <- pathSets,
 		path <- pathSet,
-		target `elem` (Map.elems (endState path))]
+		target `elem` (Map.elems $ endState path)]
 
 main = do
 
