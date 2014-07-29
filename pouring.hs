@@ -15,8 +15,8 @@ data Move
 	deriving (Show)
 
 applyMove :: Move -> Capacities -> State -> State
-applyMove (Empty g) _ s = adjust (\_ -> 0) g s
-applyMove (Fill g) capacities s = adjust (\_ -> capacities ! g) g s
+applyMove (Empty g) _ s = adjust (const 0) g s
+applyMove (Fill g) capacities s = adjust (const $ capacities ! g) g s
 applyMove (Pour from to) capacities s = 
 	let
 		toCapacity = capacities ! to
@@ -24,13 +24,13 @@ applyMove (Pour from to) capacities s =
 		toState = s ! to
 		amount = min fromState (toCapacity - toState)
 	in
-		adjust (\_ -> fromState - amount) from .
-		adjust (\_ -> toState + amount) to $ s
+		adjust (const $ fromState - amount) from .
+		adjust (const $ toState + amount) to $ s
 
 data Path = Path {
-	endState :: State,
-	history :: [Move]}
-	deriving (Show)
+		endState :: State,
+		history :: [Move]
+	} deriving (Show)
 
 extendPath :: Path -> Capacities -> Move -> Path
 extendPath path capacities move =
