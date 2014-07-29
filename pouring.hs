@@ -1,5 +1,6 @@
 import Data.Map
 import Data.List
+import Data.List.Split
 import System.Environment
 
 type Glass = Int
@@ -58,19 +59,12 @@ solutions pathSets target =
 		path <- pathSet,
 		target `elem` (elems $ endState path)]
 
--- http://stackoverflow.com/questions/4978578/how-to-split-a-string-in-haskell
-wordsWhen :: (Char -> Bool) -> String -> [String]
-wordsWhen p s = case dropWhile p s of
-	"" -> []
-	s' -> w : wordsWhen p s''
-		where (w, s'') = break p s'
-
 main = do
 
 	args <- getArgs
 
 	let
-		glassVolumes = Data.List.map read $ wordsWhen (==',') $ args !! 0
+		glassVolumes = Data.List.map read $ wordsBy (==',') $ args !! 0
 		target = read $ args !! 1
 		glasses = [0..(length glassVolumes - 1)]
 		capacities = fromList $ zip [0..] glassVolumes
