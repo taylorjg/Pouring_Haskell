@@ -66,9 +66,9 @@ main = do
 	let
 		glassVolumes = Data.List.map read $ wordsBy (==',') $ args !! 0
 		target = read $ args !! 1
-		glasses = [0..(length glassVolumes - 1)]
-		capacities = fromList $ zip [0..] glassVolumes
-		initialState = Data.Map.map (\_ -> 0) capacities
+		glasses = zipWith const [0..] glassVolumes
+		capacities = fromList $ zip glasses glassVolumes
+		initialState = fromList $ zip glasses $ repeat 0
 		initialPath = Path initialState []
 		pathSets = fromPaths [initialPath] [initialState] moves capacities
 		solution = head $ solutions pathSets target
