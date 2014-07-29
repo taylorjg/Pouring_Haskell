@@ -1,14 +1,14 @@
 import qualified Data.Map as Map
 
-type Index = Int
+type Glass = Int
 type Volume = Int
-type State = Map.Map Index Volume
-type Capacities = Map.Map Index Volume
+type Capacities = Map.Map Glass Volume
+type State = Map.Map Glass Volume
 
 data Move
-	= Empty { glass :: Index }
-	| Fill { glass :: Index }
-	| Pour { from :: Index, to :: Index }
+	= Empty { glass :: Glass }
+	| Fill { glass :: Glass }
+	| Pour { from :: Glass, to :: Glass }
 	deriving (Show)
 
 applyMove :: Move -> Capacities -> State -> State
@@ -60,7 +60,6 @@ main = do
 		initialPath = Path initialState []
 		pathSets = fromPaths [initialPath] [initialState] moves capacities
 		answer = head $ solutions pathSets 7
-
 		glasses = [0..(length glassVolumes - 1)]
 		moves =
 			[Empty g | g <- glasses] ++
