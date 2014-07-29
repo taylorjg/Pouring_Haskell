@@ -1,9 +1,10 @@
-import qualified Data.Map as Map
+import Data.Map
+import Data.List
 
 type Glass = Int
 type Volume = Int
-type Capacities = Map.Map Glass Volume
-type State = Map.Map Glass Volume
+type Capacities = Map Glass Volume
+type State = Map Glass Volume
 
 data Move
 	= Empty { glass :: Glass }
@@ -12,17 +13,17 @@ data Move
 	deriving (Show)
 
 applyMove :: Move -> Capacities -> State -> State
-applyMove (Empty g) _ s = Map.adjust (\_ -> 0) g s
-applyMove (Fill g) capacities s = Map.adjust (\_ -> capacities Map.! g) g s
+applyMove (Empty g) _ s = adjust (\_ -> 0) g s
+applyMove (Fill g) capacities s = adjust (\_ -> capacities ! g) g s
 applyMove (Pour from to) capacities s = 
 	let
-		toCapacity = capacities Map.! to
-		fromState = s Map.! from
-		toState = s Map.! to
+		toCapacity = capacities ! to
+		fromState = s ! from
+		toState = s ! to
 		amount = min fromState (toCapacity - toState)
 	in
-		Map.adjust (\_ -> fromState - amount) from .
-		Map.adjust (\_ -> toState + amount) to $ s
+		adjust (\_ -> fromState - amount) from .
+		adjust (\_ -> toState + amount) to $ s
 
 data Path = Path {
 	endState :: State,
@@ -43,9 +44,9 @@ fromPaths paths explored moves capacities =
 	let
 		morePaths = [next |
 			path <- paths,
-			next <- map (extendPath path capacities) moves,
+			next <- Data.List.map (extendPath path capacities) moves,
 			(endState next) `notElem` explored]
-		moreExplored = explored ++ (map endState morePaths)
+		moreExplored = explored ++ (Data.List.map endState morePaths)
 	in
 		[paths] ++ fromPaths morePaths moreExplored moves capacities
 
@@ -54,18 +55,18 @@ solutions pathSets target =
 	[path |
 		pathSet <- pathSets,
 		path <- pathSet,
-		target `elem` (Map.elems $ endState path)]
+		target `elem` (elems $ endState path)]
 
 main = do
 
 	let
 		glassVolumes = [4, 9]
-		capacities = Map.fromList $ zip [0..] glassVolumes
-		initialState = Map.map (\_ -> 0) capacities
+		glasses = [0..(length glassVolumes - 1)]
+		capacities = fromList $ zip [0..] glassVolumes
+		initialState = Data.Map.map (\_ -> 0) capacities
 		initialPath = Path initialState []
 		pathSets = fromPaths [initialPath] [initialState] moves capacities
-		answer = head $ solutions pathSets 7
-		glasses = [0..(length glassVolumes - 1)]
+		solution = head $ solutions pathSets 7
 		moves =
 			[Empty g | g <- glasses] ++
 			[Fill g | g <- glasses] ++
@@ -74,4 +75,4 @@ main = do
 	putStrLn $ "capacities: " ++ show capacities
 	putStrLn $ "initialState: " ++ show initialState
 	putStrLn $ "initialPath: " ++ show initialPath
-	putStrLn $ "answer: " ++ show answer
+	putStrLn $ "solution: " ++ show solution
