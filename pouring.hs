@@ -44,6 +44,13 @@ fromPaths paths explored moves capacities =
 	in
 		[paths] ++ fromPaths morePaths moreExplored moves capacities
 
+solutions :: [[Path]] -> Volume -> [Path]
+solutions pathSets target =
+	[path |
+		pathSet <- pathSets,
+		path <- pathSet,
+		target `elem` (Map.elems (endState path))]
+
 main = do
 
 	let
@@ -52,6 +59,7 @@ main = do
 		initialState = Map.map (\_ -> 0) capacities
 		initialPath = Path initialState []
 		pathSets = fromPaths [initialPath] [initialState] moves capacities
+		answer = head $ solutions pathSets 7
 
 		glasses = [0..(length glassVolumes - 1)]
 		moves =
@@ -62,4 +70,4 @@ main = do
 	putStrLn $ "capacities: " ++ show capacities
 	putStrLn $ "initialState: " ++ show initialState
 	putStrLn $ "initialPath: " ++ show initialPath
-	putStrLn $ "pathSets: " ++ show pathSets
+	putStrLn $ "answer: " ++ show answer
