@@ -24,20 +24,35 @@ applyMove (Pour from to) cs s =
 		Map.adjust (\_ -> fromState - amount) from .
 		Map.adjust (\_ -> toState + amount) to $ s
 
+data Path = Path {
+	endState :: State,
+	history :: [Move]}
+	deriving (Show)
+
+extendPath :: Path -> Move -> Capacities -> Path
+extendPath p m cs = Path (applyMove m cs (endState p)) (m : (history p))
+
+fromPaths :: [Path] -> [State] -> [Move] -> Capacities -> [[Path]]
+fromPaths [] _ _ _ = [[]]
+fromPaths paths explored moves capacities =
+	let
+		morePaths = [next |
+			path <- paths,
+			next <- map (\m -> extendPath path m capacities) moves,
+			(endState next) `notElem` explored]
+		moreExplored = explored ++ (map (\p -> endState p) morePaths)
+	in
+		[paths] ++ fromPaths morePaths moreExplored moves capacities
+
 main = do
 
 	let
 		glassVolumes = [4, 9]
 		capacities = Map.fromList $ zip [0..] glassVolumes
 		initialState = Map.map (\_ -> 0) capacities
-		move1 = Fill 1
-		move2 = Pour 1 0
-		move3 = Empty 0
-		move4 = Pour 1 0
-		newState1 = applyMove move1 capacities initialState
-		newState2 = applyMove move2 capacities newState1
-		newState3 = applyMove move3 capacities newState2
-		newState4 = applyMove move4 capacities newState3
+		initialPath = Path initialState []
+		pathSets = fromPaths [initialPath] [initialState] moves capacities
+
 		glasses = [0..(length glassVolumes - 1)]
 		moves =
 			[Empty g | g <- glasses] ++
@@ -46,6 +61,5 @@ main = do
 
 	putStrLn $ "capacities: " ++ show capacities
 	putStrLn $ "initialState: " ++ show initialState
-	putStrLn $ "newState: " ++ show newState4
-	putStrLn $ "glasses: " ++ show glasses
-	putStrLn $ "moves: " ++ show moves
+	putStrLn $ "initialPath: " ++ show initialPath
+	putStrLn $ "pathSets: " ++ show pathSets
