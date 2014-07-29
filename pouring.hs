@@ -12,11 +12,11 @@ data Move
 	deriving (Show)
 
 applyMove :: Move -> Capacities -> State -> State
-applyMove (Empty g) cs s = Map.adjust (\_ -> 0) g s
-applyMove (Fill g) cs s = Map.adjust (\_ -> cs Map.! g) g s
-applyMove (Pour from to) cs s = 
+applyMove (Empty g) _ s = Map.adjust (\_ -> 0) g s
+applyMove (Fill g) capacities s = Map.adjust (\_ -> capacities Map.! g) g s
+applyMove (Pour from to) capacities s = 
 	let
-		toCapacity = cs Map.! to
+		toCapacity = capacities Map.! to
 		fromState = s Map.! from
 		toState = s Map.! to
 		amount = min fromState (toCapacity - toState)
@@ -32,7 +32,7 @@ data Path = Path {
 extendPath :: Path -> Capacities -> Move -> Path
 extendPath path capacities move =
 	let
-		newPath = applyMove move capacities (endState path)
+		newPath = applyMove move capacities $ endState path
 		newHistory = move : history path
 	in
 		Path newPath newHistory
