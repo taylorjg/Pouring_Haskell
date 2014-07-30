@@ -14,8 +14,8 @@ data Move
     | Pour { from :: Glass, to :: Glass }
 
 instance Show Move where
-    show (Empty g) = "Empty " ++ show g
-    show (Fill g) = "Fill " ++ show g
+    show (Empty g) = "Empty " ++ show g ++ "    "
+    show (Fill g) = "Fill " ++ show g ++ "     "
     show (Pour from to) = "Pour " ++ show from ++ " to " ++ show to
 
 applyMove :: Move -> Capacities -> State -> State
@@ -75,7 +75,7 @@ formatPath path capacities initialState =
         reverse $ map fst steps
 
 formatState :: State -> String
-formatState s = concat $ map show $ Map.elems s
+formatState s = intercalate " " $ map show $ Map.elems s
 
 solutions :: [[Path]] -> Volume -> [Path]
 solutions pathSets target =
