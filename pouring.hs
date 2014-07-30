@@ -12,7 +12,11 @@ data Move
     = Empty { glass :: Glass }
     | Fill { glass :: Glass }
     | Pour { from :: Glass, to :: Glass }
-    deriving (Show)
+
+instance Show Move where
+    show (Empty g) = "Empty " ++ show g
+    show (Fill g) = "Fill " ++ show g
+    show (Pour from to) = "Pour " ++ show from ++ " to " ++ show to
 
 applyMove :: Move -> Capacities -> State -> State
 applyMove (Empty g) _ s = Map.adjust (const 0) g s
@@ -30,7 +34,7 @@ applyMove (Pour from to) capacities s =
 data Path = Path {
         endState :: State,
         history :: [Move]
-    } deriving (Show)
+    }
 
 extendPath :: Path -> Capacities -> Move -> Path
 extendPath path capacities move =
@@ -60,13 +64,18 @@ formatPath path capacities initialState =
                 let
                     previousState = snd $ head acc
                     nextState = applyMove move capacities previousState
-                    stepDescription = show move ++ " => " ++ show nextState
+                    --stepDescription = show move ++ " => " ++ show nextState
+                    stepDescription = show move ++ " => " ++ formatState nextState
                 in
                     (stepDescription, nextState) : acc)
-            [("initialState = " ++ show initialState, initialState)]
+            --[("initialState = " ++ show initialState, initialState)]
+            [("initialState = " ++ formatState initialState, initialState)]
             (history path)
     in
         reverse $ map fst steps
+
+formatState :: State -> String
+formatState s = concat $ map show $ Map.elems s
 
 solutions :: [[Path]] -> Volume -> [Path]
 solutions pathSets target =
