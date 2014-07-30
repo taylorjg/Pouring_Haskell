@@ -64,11 +64,9 @@ formatPath path capacities initialState =
                 let
                     previousState = snd $ head acc
                     nextState = applyMove move capacities previousState
-                    --stepDescription = show move ++ " => " ++ show nextState
                     stepDescription = show move ++ " => " ++ formatState nextState
                 in
                     (stepDescription, nextState) : acc)
-            --[("initialState = " ++ show initialState, initialState)]
             [("initialState = " ++ formatState initialState, initialState)]
             (history path)
     in
