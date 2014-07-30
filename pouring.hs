@@ -1,12 +1,12 @@
-import Data.Map
 import Data.List
-import Data.List.Split
-import System.Environment
+import Data.List.Split(wordsBy)
+import qualified Data.Map as Map
+import System.Environment(getArgs)
 
 type Glass = Int
 type Volume = Int
-type Capacities = Map Glass Volume
-type State = Map Glass Volume
+type Capacities = Map.Map Glass Volume
+type State = Map.Map Glass Volume
 
 data Move
     = Empty { glass :: Glass }
@@ -15,17 +15,17 @@ data Move
     deriving (Show)
 
 applyMove :: Move -> Capacities -> State -> State
-applyMove (Empty g) _ s = adjust (const 0) g s
-applyMove (Fill g) capacities s = adjust (const $ capacities ! g) g s
+applyMove (Empty g) _ s = Map.adjust (const 0) g s
+applyMove (Fill g) capacities s = Map.adjust (const $ capacities Map.! g) g s
 applyMove (Pour from to) capacities s = 
     let
-        toCapacity = capacities ! to
-        fromState = s ! from
-        toState = s ! to
+        toCapacity = capacities Map.! to
+        fromState = s Map.! from
+        toState = s Map.! to
         amount = min fromState (toCapacity - toState)
     in
-        adjust (const $ fromState - amount) from .
-        adjust (const $ toState + amount) to $ s
+        Map.adjust (const $ fromState - amount) from .
+        Map.adjust (const $ toState + amount) to $ s
 
 data Path = Path {
         endState :: State,
@@ -46,16 +46,16 @@ fromPaths paths explored moves capacities =
     let
         morePaths = [next |
             path <- paths,
-            next <- Data.List.map (extendPath path capacities) moves,
+            next <- map (extendPath path capacities) moves,
             (endState next) `notElem` explored]
-        moreExplored = explored ++ (Data.List.map endState morePaths)
+        moreExplored = explored ++ (map endState morePaths)
     in
         [paths] ++ fromPaths morePaths moreExplored moves capacities
 
 formatPath :: Path -> Capacities -> State -> [String]
 formatPath path capacities initialState =
     let
-        steps = Data.List.foldr
+        steps = foldr
             (\move acc ->
                 let
                     previousState = snd $ head acc
@@ -66,25 +66,25 @@ formatPath path capacities initialState =
             [("initialState = " ++ show initialState, initialState)]
             (history path)
     in
-        reverse $ Data.List.map fst steps
+        reverse $ map fst steps
 
 solutions :: [[Path]] -> Volume -> [Path]
 solutions pathSets target =
     [path |
         pathSet <- pathSets,
         path <- pathSet,
-        target `elem` (elems $ endState path)]
+        target `elem` (Map.elems $ endState path)]
 
 main = do
 
     args <- getArgs
 
     let
-        glassVolumes = Data.List.map read $ wordsBy (==',') $ args !! 0
+        glassVolumes = map read $ wordsBy (==',') $ args !! 0
         target = read $ args !! 1
         glasses = zipWith const [0..] glassVolumes
-        capacities = fromList $ zip glasses glassVolumes
-        initialState = fromList $ zip glasses $ repeat 0
+        capacities = Map.fromList $ zip glasses glassVolumes
+        initialState = Map.fromList $ zip glasses $ repeat 0
         initialPath = Path initialState []
         moves =
             [Empty g | g <- glasses] ++
